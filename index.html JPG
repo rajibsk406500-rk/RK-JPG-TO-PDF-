@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>RK PDF ↔ JPG Advanced Converter</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,"Noto Sans Bengali",sans-serif;background:#f5f5f5;color:#333}button,input{font:inherit}
+#app{--yellow:#facc15;--yellow-dark:#ca8a04;--red:#dc2626;--red-dark:#b91c1c;--bg:#fffdf5;--border:#fde68a;background:var(--bg);min-height:100vh;line-height:1.6}
+header{background:var(--red);color:#fff;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 6px #0002}header h1{font-size:18px;margin:0;display:flex;align-items:center;gap:8px}.menu-icon{font-size:22px}
+.container{max-width:950px;margin:20px auto;padding:0 15px}.card{background:#fff;padding:25px;border-radius:10px;box-shadow:0 2px 8px #7f1d1d14;border:1px solid var(--border)}
+h2{font-size:21px;margin:0 0 12px;color:#7f1d1d}.info{background:#fffbea;border-left:4px solid var(--yellow);padding:10px 15px;margin-bottom:20px;font-size:13px;color:#713f12}
+.tabs{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px}.tab{flex:1;min-width:220px;padding:10px;border:1px solid var(--border);border-radius:6px;background:#fff;color:#7f1d1d;font-weight:700;cursor:pointer}.tab.active{background:var(--red);color:#fff;border-color:var(--red)}
+.section{display:none}.section.active{display:block}.group{margin-bottom:15px}label{display:block;margin-bottom:5px;font-weight:600;font-size:14px;color:#7f1d1d}
+.upload{border:2px dashed var(--yellow);background:#fffdf0;border-radius:10px;padding:14px 15px;text-align:center;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}.upload:hover,.upload.drag{background:#fff7b8;border-color:var(--yellow-dark)}.upload.uploaded{border-color:#16a34a;background:#f0fdf4}.upload svg{width:28px;height:28px;fill:var(--red)}.uploaded svg{fill:#16a34a}.upload-title{font-size:13px;font-weight:bold;color:var(--red)}.uploaded .upload-title{color:#15803d}
+input[type=text]{width:100%;padding:10px;border:1px solid var(--border);border-radius:6px;font-size:14px}
+.btn{position:relative;overflow:hidden;width:100%;padding:10px;border-radius:6px;border:1px solid #eab308;background:linear-gradient(135deg,#facc15 0%,#f59e0b 45%,#dc2626 100%);color:#fff;cursor:pointer;font-weight:700;box-shadow:0 2px 6px #7f1d1d29}.btn:disabled{opacity:.55;cursor:not-allowed}.btn:after{content:"";position:absolute;top:-30%;left:-55%;width:18%;height:160%;background:linear-gradient(90deg,transparent,#ffffffd1,transparent);transform:skewX(-18deg);animation:shine 4.2s ease-in-out infinite;pointer-events:none}@keyframes shine{0%,58%{left:-55%;opacity:0}64%{opacity:.95}78%,100%{left:125%;opacity:0}}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:10px;margin-top:12px}.img-card{position:relative;width:100%;max-width:150px;justify-self:center;padding:5px;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 1px 4px #7f1d1d1a;overflow:hidden;display:flex;flex-direction:column;align-items:center;gap:4px}.img-card img{display:block;width:100%;height:105px;max-width:138px;object-fit:contain;background:#f8fafc;border-radius:6px;border:1px solid #f1f5f9}.img-card:before{content:attr(data-page);position:absolute;top:8px;left:8px;z-index:2;min-width:20px;height:20px;padding:0 5px;border-radius:5px;background:#000b;color:#fff;font-size:11px;line-height:20px;text-align:center;font-weight:700}.actions{width:100%;display:grid;grid-template-columns:repeat(4,1fr);gap:3px}.actions button{min-width:0;height:28px;padding:2px 3px;border:1px solid var(--border);border-radius:5px;background:#fff;color:#7f1d1d;font-size:12px;cursor:pointer}.actions button:hover:not(:disabled){background:#fff7b8}.actions button:disabled{opacity:.35;cursor:not-allowed}.actions .remove{background:#dc2626;color:#fff;border-color:#dc2626}
+.mini-file{display:flex;align-items:center;gap:12px}.thumb{width:60px;height:60px;border-radius:8px;border:1px dashed var(--red);display:none;align-items:center;justify-content:center;background:#fafafa;overflow:hidden;flex-shrink:0}.thumb img{width:100%;height:100%;object-fit:cover}.thumb span{font-size:24px}
+.progress{display:none;margin:12px auto 0;max-width:620px;padding:10px 12px;background:#fffbea;border:1px solid var(--border);border-radius:9px}.bar-bg{width:100%;height:9px;background:#fef3c7;border-radius:999px;overflow:hidden;box-shadow:inset 0 1px 2px #00000014}.bar{width:0;height:100%;border-radius:999px;background:linear-gradient(90deg,#dc2626,#facc15);transition:width .25s ease}.status{text-align:center;margin-top:6px;font-size:11.5px;font-weight:700;color:#92400e}
+.result{margin-top:15px;background:#f0fdf4;padding:15px;border:1px solid #16a34a;border-radius:8px;text-align:center}.result p{color:#15803d;font-weight:bold;margin:0 0 10px}.download{display:inline-block;text-decoration:none;width:100%}.size-picker{margin:0 0 10px;padding:9px 10px;background:#fffbeb;border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}.size-picker label{display:inline;margin:0;font-size:12px;color:#7f1d1d}.size-picker select{min-width:120px;padding:7px 10px;border:1px solid var(--border);border-radius:7px;background:#fff;color:#7f1d1d;font-weight:700;outline:none}.size-note{font-size:10.5px;color:#92400e;width:100%;margin-top:1px}body.dark-mode .size-picker{background:#1c1917;border-color:#7c5d12}body.dark-mode .size-picker label{color:#fde68a}body.dark-mode .size-picker select{background:#0f172a;color:#fde68a;border-color:#475569}body.dark-mode .size-note{color:#fcd34d}
+@media(max-width:700px){.container{margin:12px auto;padding:0 10px}.card{padding:15px}header{padding:10px 12px}header h1{font-size:16px}.grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.img-card{max-width:none}.img-card img{height:92px}.tabs{gap:8px}.tab{min-width:0}}
+    /* ===== PROFESSIONAL PDF PASSWORD UNLOCK DIALOG ===== */
+    #rkPdfPasswordModal {
+      display:none; position:fixed; inset:0; z-index:999999;
+      align-items:center; justify-content:center; padding:18px;
+      background:rgba(15,23,42,.62); backdrop-filter:blur(4px);
+    }
+    #rkPdfPasswordModal.show { display:flex; }
+    #rkPdfPasswordModal .rk-pdf-pass-card {
+      width:min(430px,100%); background:#fff; color:#172033;
+      border:1px solid #e5e7eb; border-radius:16px; padding:20px;
+      box-shadow:0 20px 60px rgba(0,0,0,.28);
+    }
+    /* ===== CODED SVG PASSWORD REACTION FACE ===== */
+    #rkPdfPasswordModal .rk-pdf-pass-icon {
+      width:104px; height:104px; margin:0 auto 10px;
+      display:flex; align-items:center; justify-content:center;
+      background:transparent; color:inherit; font-size:22px;
+      position:relative;
+    }
+    #rkPdfPasswordModal .rk-password-face {
+      width:104px; height:104px; display:block; overflow:visible;
+      filter:drop-shadow(0 9px 8px rgba(0,0,0,.22));
+      transform-origin:50% 50%;
+      will-change:transform;
+    }
+
+    /* Only ONE complete face is visible at a time.
+       Yellow = normal/happy. Red = wrong-password/angry. */
+    #rkPdfPasswordModal .rk-face-yellow,
+    #rkPdfPasswordModal .rk-face-red,
+    #rkPdfPasswordModal .rk-face-happy-features,
+    #rkPdfPasswordModal .rk-face-angry-features {
+      transition:opacity .22s ease;
+    }
+    #rkPdfPasswordModal .rk-face-red,
+    #rkPdfPasswordModal .rk-face-angry-features {
+      opacity:0;
+      pointer-events:none;
+    }
+    #rkPdfPasswordModal.rk-password-incorrect .rk-face-yellow,
+    #rkPdfPasswordModal.rk-password-incorrect .rk-face-happy-features {
+      opacity:0;
+    }
+    #rkPdfPasswordModal.rk-password-incorrect .rk-face-red,
+    #rkPdfPasswordModal.rk-password-incorrect .rk-face-angry-features {
+      opacity:1;
+    }
+
+    /* Happy: gentle floating/breathing animation. */
+    #rkPdfPasswordModal:not(.rk-password-incorrect) .rk-password-face {
+      animation:rkHappyBounce 2.2s ease-in-out infinite;
+    }
+
+    /* Wrong password: keep shaking repeatedly until the user starts typing again. */
+    #rkPdfPasswordModal.rk-password-incorrect .rk-password-face {
+      animation:rkAngryShake .78s cubic-bezier(.36,.07,.19,.97) infinite;
+    }
+
+    @keyframes rkHappyBounce {
+      0%,100% { transform:translateY(0) rotate(0deg) scale(1); }
+      25% { transform:translateY(-2px) rotate(-1deg) scale(1.015); }
+      50% { transform:translateY(-4px) rotate(0deg) scale(1.025); }
+      75% { transform:translateY(-2px) rotate(1deg) scale(1.015); }
+    }
+
+    @keyframes rkAngryShake {
+      0%,100% { transform:translateX(0) rotate(0deg) scale(1); }
+      8% { transform:translateX(-8px) rotate(-4deg) scale(1.02); }
+      16% { transform:translateX(9px) rotate(4deg) scale(1.02); }
+      24% { transform:translateX(-11px) rotate(-5deg) scale(1.025); }
+      32% { transform:translateX(11px) rotate(5deg) scale(1.025); }
+      40% { transform:translateX(-10px) rotate(-4deg) scale(1.02); }
+      48% { transform:translateX(10px) rotate(4deg) scale(1.02); }
+      56% { transform:translateX(-9px) rotate(-4deg) scale(1.018); }
+      64% { transform:translateX(8px) rotate(3.5deg) scale(1.015); }
+      72% { transform:translateX(-6px) rotate(-2.5deg) scale(1.01); }
+      82% { transform:translateX(4px) rotate(2deg) scale(1.006); }
+      92% { transform:translateX(-2px) rotate(-1deg) scale(1.002); }
+    }
+
+    /* Strong angry expression: eyebrows slope DOWN toward the center.
+       No CSS rotation is applied to the brows, so they cannot flip into a sad look. */
+    #rkPdfPasswordModal .rk-face-angry-features {
+      transform-box:fill-box;
+      transform-origin:center;
+    }
+    #rkPdfPasswordModal .rk-face-angry-brow-left,
+    #rkPdfPasswordModal .rk-face-angry-brow-right {
+      transform:none;
+    }
+
+    /* Red face gets a short entrance flash; the head itself keeps shaking. */
+    #rkPdfPasswordModal.rk-password-incorrect .rk-face-red {
+      animation:rkAngryFlash .32s ease-out 1;
+    }
+    @keyframes rkAngryFlash {
+      0% { opacity:0; transform:scale(.94); }
+      55% { opacity:1; transform:scale(1.04); }
+      100% { opacity:1; transform:scale(1); }
+    }
+
+    /* When typing starts again, the single yellow face returns with a cheerful entrance. */
+    #rkPdfPasswordModal.rk-password-reset .rk-password-face {
+      animation:rkHappyReturn .62s cubic-bezier(.2,.8,.2,1) 1;
+    }
+    @keyframes rkHappyReturn {
+      0% { transform:translateY(8px) scale(.84) rotate(-4deg); opacity:.35; }
+      55% { transform:translateY(-5px) scale(1.06) rotate(2deg); opacity:1; }
+      100% { transform:translateY(0) scale(1) rotate(0deg); opacity:1; }
+    }
+
+#rkPdfPasswordModal h3 { margin:0 0 7px; text-align:center; font-size:19px; }
+    #rkPdfPasswordModal p { margin:0 0 14px; text-align:center; color:#64748b; font-size:13px; line-height:1.5; }
+    #rkPdfPasswordModal .rk-pdf-pass-name {
+      margin-bottom:10px; padding:8px 10px; border-radius:8px;
+      background:#f8fafc; border:1px solid #e2e8f0; font-size:12px;
+      color:#475569; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    #rkPdfPasswordModal .rk-pdf-pass-wrap { position:relative; }
+    #rkPdfPasswordModal input {
+      width:100%; padding:12px 44px 12px 12px; border:1px solid #cbd5e1;
+      border-radius:9px; outline:none; font-size:15px; color:#111827;
+    }
+    #rkPdfPasswordModal input:focus { border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,.12); }
+    #rkPdfPasswordModal .rk-pdf-eye {
+      position:absolute; right:12px; top:50%; transform:translateY(-50%);
+      cursor:pointer; color:#64748b;
+    }
+    #rkPdfPasswordModal .rk-pdf-pass-error {
+      display:none; margin-top:8px; color:#b91c1c; font-size:12px; font-weight:600;
+    }
+    #rkPdfPasswordModal .rk-pdf-pass-error.show { display:block; }
+    #rkPdfPasswordModal .rk-pdf-pass-actions { display:flex; gap:9px; margin-top:15px; }
+    #rkPdfPasswordModal .rk-pdf-pass-actions button {
+      flex:1; padding:11px 12px; border-radius:9px; border:1px solid #cbd5e1;
+      cursor:pointer; font-weight:700; font-size:13px;
+    }
+    #rkPdfPasswordModal .rk-pdf-pass-cancel { background:#f8fafc; color:#334155; }
+    #rkPdfPasswordModal .rk-pdf-pass-unlock { background:#dc2626; color:#fff; border-color:#dc2626; }
+    body.rk-dark-mode #rkPdfPasswordModal .rk-pdf-pass-card { background:#171a23; color:#f8fafc; border-color:#30364d; }
+    body.rk-dark-mode #rkPdfPasswordModal p { color:#aeb7c8; }
+    body.rk-dark-mode #rkPdfPasswordModal .rk-pdf-pass-name { background:#111622; border-color:#30364d; color:#cbd5e1; }
+    body.rk-dark-mode #rkPdfPasswordModal input { background:#0f131c; color:#f8fafc; border-color:#3b4356; }
+    body.rk-dark-mode #rkPdfPasswordModal .rk-pdf-pass-cancel { background:#202532; color:#e5e7eb; border-color:#3b4356; }
+
+  
+</head>
+<body>
+
+
+  <div id="rkPdfPasswordModal" aria-hidden="true">
+    <div class="rk-pdf-pass-card" role="dialog" aria-modal="true" aria-labelledby="rkPdfPassTitle">
+
+
+:root{color-scheme:light}
+body.dark-mode{background:#0b1020;color:#e5e7eb}
+body.dark-mode #app{--bg:#0f172a;--border:#334155;background:var(--bg);color:#e5e7eb}
+body.dark-mode header{background:#7f1d1d;box-shadow:0 2px 10px #0008}
+body.dark-mode .card{background:#111827;color:#e5e7eb;box-shadow:0 8px 28px #0006;border-color:#334155}
+body.dark-mode h2,body.dark-mode label{color:#fef08a}
+body.dark-mode .info{background:#1c1917;color:#fde68a;border-color:#facc15}
+body.dark-mode .tab{background:#1f2937;color:#fde68a;border-color:#475569}
+body.dark-mode .tab.active{background:#dc2626;color:#fff;border-color:#dc2626}
+body.dark-mode .upload{background:#172033;border-color:#facc15}
+body.dark-mode .upload:hover,body.dark-mode .upload.drag{background:#292313}
+body.dark-mode .upload-title{color:#fca5a5}
+body.dark-mode input[type=text]{background:#0f172a;color:#f8fafc;border-color:#475569}body.dark-mode select{background:#0f172a!important;color:#fde68a!important;border-color:#475569!important}
+body.dark-mode .img-card{background:#1e293b;border-color:#475569}
+body.dark-mode .img-card img{background:#0f172a;border-color:#334155}
+body.dark-mode .actions button{background:#1f2937;color:#fde68a;border-color:#475569}
+body.dark-mode .actions button:hover:not(:disabled){background:#3f3410}
+body.dark-mode .progress{background:#1c1917;border-color:#7c5d12}
+body.dark-mode .bar-bg{background:#3f3210}
+body.dark-mode .status{color:#fde68a}
+body.dark-mode .result{background:#052e16;border-color:#16a34a}
+body.dark-mode .result p{color:#86efac}
+body.dark-mode #rkPdfPasswordModal .rk-pdf-pass-card{background:#111827;color:#f8fafc;border-color:#334155;box-shadow:0 20px 70px #0009}
+body.dark-mode #rkPdfPasswordModal .rk-pdf-pass-card input{background:#0f172a;color:#fff;border-color:#475569}
+#themeToggle{width:auto;min-width:46px;padding:8px 11px;border:1px solid #ffffff55;border-radius:999px;background:#ffffff18;color:#fff;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;box-shadow:none}
+#themeToggle:hover{background:#ffffff2e}
+@media(max-width:700px){#themeToggle{min-width:42px;padding:7px 10px}}
+</style>
+</head>
+<body>
+  <div id="rkPdfPasswordModal" aria-hidden="true">
+    <div class="rk-pdf-pass-card" role="dialog" aria-modal="true" aria-labelledby="rkPdfPassTitle">
+      <div class="rk-pdf-pass-icon" aria-hidden="true">
+        <svg class="rk-password-face" viewBox="0 0 700 700" role="img" aria-label="Password reaction">
+          <defs>
+            <radialGradient id="rkFaceYellowGradient" cx="42%" cy="25%" r="78%">
+              <stop offset="0%" stop-color="#fff9b8"/>
+              <stop offset="24%" stop-color="#ffe96a"/>
+              <stop offset="70%" stop-color="#ffc21b"/>
+              <stop offset="100%" stop-color="#f59a00"/>
+            </radialGradient>
+            <radialGradient id="rkFaceRedGradient" cx="40%" cy="22%" r="80%">
+              <stop offset="0%" stop-color="#ff8b73"/>
+              <stop offset="28%" stop-color="#ff4b3e"/>
+              <stop offset="68%" stop-color="#f01818"/>
+              <stop offset="100%" stop-color="#a40000"/>
+            </radialGradient>
+          </defs>
+
+          <!-- Normal face: exactly one yellow head -->
+          <g class="rk-face-yellow">
+            <circle cx="350" cy="350" r="315" fill="url(#rkFaceYellowGradient)" stroke="#e66f00" stroke-width="9"/>
+            <circle cx="350" cy="350" r="301" fill="none" stroke="#ffd84a" stroke-width="6" opacity=".65"/>
+          </g>
+          <g class="rk-face-happy-features" fill="#713000" stroke="#5a2500" stroke-width="4" stroke-linejoin="round">
+            <!-- two happy eyes -->
+            <ellipse cx="255" cy="345" rx="42" ry="55"/>
+            <ellipse cx="445" cy="345" rx="42" ry="55"/>
+            <!-- friendly smile -->
+            <path d="M267 470 C315 532 385 532 433 470
+                     C441 459 455 469 448 482
+                     C397 570 303 570 252 482
+                     C245 469 259 459 267 470 Z"/>
+          </g>
+          <g class="rk-face-happy-features" fill="#fff" opacity=".62">
+            <ellipse cx="242" cy="326" rx="12" ry="18"/>
+            <ellipse cx="432" cy="326" rx="12" ry="18"/>
+          </g>
+
+          <!-- Wrong-password face: one complete red head, no extra face underneath -->
+          <g class="rk-face-red">
+            <circle cx="350" cy="350" r="315" fill="url(#rkFaceRedGradient)" stroke="#9f0000" stroke-width="10"/>
+            <circle cx="350" cy="350" r="301" fill="none" stroke="#ff6b5d" stroke-width="6" opacity=".55"/>
+          </g>
+          <!-- ANGRY FEATURES: one pair of brows, one pair of eyes, one angry mouth.
+               The brow geometry itself slopes inward/downward; it is NOT rotated by CSS. -->
+          <g class="rk-face-angry-features" fill="#330000" stroke="#1b0000" stroke-width="5" stroke-linejoin="round">
+            <!-- LEFT eyebrow: outer end high, inner end low -->
+            <path class="rk-face-angry-brow-left"
+                  d="M178 266 C220 244 274 249 326 292
+                     C337 301 332 317 318 311
+                     C271 291 229 289 188 307
+                     C171 314 162 276 178 266 Z"/>
+            <!-- RIGHT eyebrow: mirror image; outer end high, inner end low -->
+            <path class="rk-face-angry-brow-right"
+                  d="M522 266 C480 244 426 249 374 292
+                     C363 301 368 317 382 311
+                     C429 291 471 289 512 307
+                     C529 314 538 276 522 266 Z"/>
+
+            <!-- TWO LARGE ANGRY EYES -->
+            <ellipse cx="255" cy="365" rx="47" ry="61"/>
+            <ellipse cx="445" cy="365" rx="47" ry="61"/>
+          </g>
+
+          <!-- Two eye highlights: keeps the expression alive instead of looking like a sad icon. -->
+          <g class="rk-face-angry-features" fill="#ffffff">
+            <ellipse cx="241" cy="346" rx="12" ry="17"/>
+            <ellipse cx="431" cy="346" rx="12" ry="17"/>
+            <circle cx="265" cy="383" r="5" opacity=".45"/>
+            <circle cx="455" cy="383" r="5" opacity=".45"/>
+          </g>
+
+          <!-- ANGRY MOUTH: corners lower than the center, clearly a strong frown. -->
+          <g class="rk-face-angry-features" fill="none" stroke="#330000" stroke-width="24" stroke-linecap="round">
+            <path d="M270 515 Q350 450 430 515"/>
+          </g>
+        </svg>
+      </div>
+      <h3 id="rkPdfPassTitle">PDF Password Required</h3>
+      <p id="rkPdfPassMessage">This PDF is password protected. Enter the password to unlock and use the file.</p>
+      <div class="rk-pdf-pass-name" id="rkPdfPassFileName"></div>
+      <div class="rk-pdf-pass-wrap">
+        <input id="rkPdfPassInput" type="password" autocomplete="off" placeholder="Enter PDF password">
+        <span class="rk-pdf-eye" id="rkPdfPassEye" onclick="toggleRkPdfPassword()"><i class="rk-pro-icon fa-solid fa-eye" aria-hidden="true"></i></span>
+      </div>
+      <div class="rk-pdf-pass-error" id="rkPdfPassError">Incorrect password. Please try again.</div>
+      <div class="rk-pdf-pass-actions">
+        <button type="button" class="rk-pdf-pass-cancel" id="rkPdfPassCancel">Cancel</button>
+        <button type="button" class="rk-pdf-pass-unlock" id="rkPdfPassUnlock"><i class="rk-pro-icon fa-solid fa-lock-open" aria-hidden="true"></i> Unlock PDF</button>
+      </div>
+    </div>
+  </div>
+
+<div id="app">
+<header><h1><i class="fa-solid fa-screwdriver-wrench"></i> RK Smart PDF ↔ JPG </h1><div class="menu-icon"><button id="themeToggle" type="button" aria-label="Switch theme"><i class="fa-solid fa-moon"></i><span id="themeLabel">Dark</span></button></div></header>
+<div class="container"><main class="card">
+<h2><i class="fa-solid fa-arrows-rotate"></i> PDF ↔ JPG Advanced Converter</h2>
+<div class="info"><i class="fa-solid fa-sparkles"></i> Convert multiple JPG images into a PDF or merge multiple PDF files into one JPG image.</div>
+<div class="tabs"><button class="tab active" id="tabJpgToPdf"><i class="fa-solid fa-image"></i> Multiple JPG <i class="fa-solid fa-arrow-right"></i> PDF</button><button class="tab" id="tabPdfToJpg"><i class="fa-solid fa-file-lines"></i> Multiple PDF <i class="fa-solid fa-arrow-right"></i> 1 JPG</button></div>
+
+<section id="jpgToPdf" class="section active">
+<div class="group"><label>1. <i class="fa-solid fa-folder-open"></i> Select images (JPG/PNG) (one or more):</label><input id="jpgInput" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden><div class="upload" id="jpgBox"><i class="fa-solid fa-cloud-arrow-up" style="font-size:28px;color:#dc2626"></i><span class="upload-title" id="jpgText">Select Images (You can select multiple at once)</span></div></div>
+<div class="grid" id="imageGrid"></div>
+<div class="group"><label>2. <i class="fa-solid fa-pen"></i> Enter your preferred PDF file name:</label><input type="text" id="pdfName" placeholder="e.g.: My_Document"></div>
+<button class="btn" id="makePdf"><i class="fa-solid fa-circle-check"></i> Done (PDF create do)</button>
+<div class="progress" id="jpgProgress"><div class="bar-bg"><div class="bar" id="jpgBar"></div></div><div class="status" id="jpgStatus">Processing... 0%</div></div><div id="jpgResult"></div>
+</section>
+
+<section id="pdfToJpg" class="section">
+<div class="group"><label>1. <i class="fa-solid fa-folder-open"></i> Select PDF files (one or more):</label><input id="pdfInput" type="file" accept="application/pdf" multiple hidden><div class="upload" id="pdfBox"><i class="fa-solid fa-cloud-arrow-up" style="font-size:28px;color:#dc2626"></i><span class="upload-title" id="pdfText">Select PDF Files</span></div></div>
+<button class="btn" id="makeJpg"><i class="fa-solid fa-image"></i> Merge all PDF pages into 1 JPG file</button>
+<div class="progress" id="pdfProgress"><div class="bar-bg"><div class="bar" id="pdfBar"></div></div><div class="status" id="pdfStatus">Processing... 0%</div></div><div id="pdfResult"></div>
+</section>
+</main></div></div>
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+setupRkPdfPasswordDialog();
+const $=id=>document.getElementById(id);let images=[];
+(function(){
+ const saved=localStorage.getItem('rk-theme')||'light';
+ const applyTheme=t=>{document.body.classList.toggle('dark-mode',t==='dark');const b=$('themeToggle');if(b){b.innerHTML=t==='dark'?'<i class="fa-solid fa-sun"></i><span id="themeLabel">Light</span>':'<i class="fa-solid fa-moon"></i><span id="themeLabel">Dark</span>';b.setAttribute('aria-label',t==='dark'?'Switch to light mode':'Switch to dark mode')}};
+ applyTheme(saved);$('themeToggle').onclick=()=>{const next=document.body.classList.contains('dark-mode')?'light':'dark';localStorage.setItem('rk-theme',next);applyTheme(next)};
+})();
+function switchTab(name){$('jpgToPdf').classList.toggle('active',name==='jpg');$('pdfToJpg').classList.toggle('active',name==='pdf');$('tabJpgToPdf').classList.toggle('active',name==='jpg');$('tabPdfToJpg').classList.toggle('active',name==='pdf')}
+$('tabJpgToPdf').onclick=()=>switchTab('jpg');$('tabPdfToJpg').onclick=()=>switchTab('pdf');$('jpgBox').onclick=()=>$('jpgInput').click();$('pdfBox').onclick=()=>$('pdfInput').click();
+function readFile(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file)})}
+$('jpgInput').onchange=async e=>{const fs=[...e.target.files];if(!fs.length)return;$('jpgBox').classList.add('uploaded');$('jpgText').textContent=`Total ${fs.length} Images Selected`;for(const f of fs)images.push({dataUrl:await readFile(f),rotation:0});renderImages()};
+function renderImages(){const g=$('imageGrid');g.innerHTML='';$('jpgText').textContent=`Total ${images.length} Images Selected`;images.forEach((x,i)=>{const c=document.createElement('div');c.className='img-card';c.dataset.page=i+1;c.innerHTML=`<img src="${x.dataUrl}" style="transform:rotate(${x.rotation}deg)"><div class="actions"><button ${i?'':'disabled'} onclick="moveImage(${i},-1)">◀</button><button onclick="rotateImage(${i})">↻</button><button ${i===images.length-1?'disabled':''} onclick="moveImage(${i},1)">▶</button><button class="remove" onclick="removeImage(${i})"><i class="fa-solid fa-xmark"></i></button></div>`;g.appendChild(c)})}
+function moveImage(i,d){const j=i+d;if(j<0||j>=images.length)return;[images[i],images[j]]=[images[j],images[i]];renderImages()}function rotateImage(i){images[i].rotation=(images[i].rotation+90)%360;renderImages()}function removeImage(i){images.splice(i,1);renderImages()}
+function rotatedPng(data,deg){return new Promise((res,rej)=>{const img=new Image();img.onload=()=>{const c=document.createElement('canvas');c.width=(deg%180?img.height:img.width);c.height=(deg%180?img.width:img.height);const x=c.getContext('2d');x.translate(c.width/2,c.height/2);x.rotate(deg*Math.PI/180);x.drawImage(img,-img.width/2,-img.height/2);c.toBlob(b=>b?b.arrayBuffer().then(res):rej(new Error('Image conversion failed')),'image/png')};img.onerror=rej;img.src=data})}
+function setProgress(prefix,pct,msg){$(prefix+'Progress').style.display='block';$(prefix+'Bar').style.width=pct+'%';$(prefix+'Status').textContent=msg+' '+pct+'%'}function finishProgress(prefix){setProgress(prefix,100,prefix==='jpg'?'PDF creation complete!':'JPG creation complete!');setTimeout(()=>{$(prefix+'Progress').style.display='none';$(prefix+'Bar').style.width='0%'},800)}
+async function imageToJpegBytes(data,deg,quality){return new Promise((res,rej)=>{const img=new Image();img.onload=()=>{const c=document.createElement('canvas');c.width=(deg%180?img.height:img.width);c.height=(deg%180?img.width:img.height);const x=c.getContext('2d',{alpha:false});x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.translate(c.width/2,c.height/2);x.rotate(deg*Math.PI/180);x.drawImage(img,-img.width/2,-img.height/2);c.toBlob(b=>b?b.arrayBuffer().then(res):rej(new Error('Image conversion failed')),'image/jpeg',quality)};img.onerror=rej;img.src=data})}
+async function buildJpgPdf(targetKB){const target=Math.max(1,Number(targetKB))*1024;let best=null,bestSize=Infinity;const qualities=[.95,.85,.75,.65,.55,.45,.35,.28,.22,.18,.14,.1,.07,.05];for(const quality of qualities){const pdf=await PDFLib.PDFDocument.create();for(const item of images){const jpg=await imageToJpegBytes(item.dataUrl,item.rotation,quality);const im=await pdf.embedJpg(jpg);const pg=pdf.addPage([im.width,im.height]);pg.drawImage(im,{x:0,y:0,width:im.width,height:im.height})}const bytes=await pdf.save();if(bytes.length<=target && bytes.length<bestSize){best=bytes;bestSize=bytes.length}if(bytes.length<bestSize && !best)best=bytes;await new Promise(requestAnimationFrame)}if(!best){const pdf=await PDFLib.PDFDocument.create();for(const item of images){const jpg=await imageToJpegBytes(item.dataUrl,item.rotation,.05);const im=await pdf.embedJpg(jpg);const pg=pdf.addPage([im.width,im.height]);pg.drawImage(im,{x:0,y:0,width:im.width,height:im.height})}best=await pdf.save()}return best}
+function sizePicker(id,value){return `<div class="size-picker"><label for="${id}"><i class="fa-solid fa-compress"></i> Target file size:</label><select id="${id}"><option value="100">100 KB</option><option value="150">150 KB</option><option value="200">200 KB</option><option value="250">250 KB</option><option value="300">300 KB</option></select><div class="size-note">Choose a target size, then download the optimized file.</div></div>`}
+async function renderJpgPdfResult(targetKB){const name=($('pdfName').value.trim()||'RK_Doc').replace(/\.pdf$/i,'');const bytes=await buildJpgPdf(targetKB);const url=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));const old=$('jpgResult').dataset.url;if(old)URL.revokeObjectURL(old);$('jpgResult').dataset.url=url;$('jpgResult').innerHTML=`<div class="result"><p><i class="fa-solid fa-circle-check"></i> PDF Created Successfully!</p>${sizePicker('jpgSize',targetKB)}<a class="download" id="jpgDownload" href="${url}" download="${name}.pdf"><button class="btn"><i class="fa-solid fa-download"></i> Download ${name}.pdf</button></a></div>`;$('jpgSize').value=String(targetKB);$('jpgSize').onchange=async e=>{const sel=e.target,sz=Number(sel.value),btn=$('jpgDownload').querySelector('button');sel.disabled=true;btn.disabled=true;btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Optimizing...';try{const b=await buildJpgPdf(sz);const nu=URL.createObjectURL(new Blob([b],{type:'application/pdf'}));const prev=$('jpgResult').dataset.url;if(prev)URL.revokeObjectURL(prev);$('jpgResult').dataset.url=nu;$('jpgDownload').href=nu}catch(err){alert('Size optimization error: '+err.message)}finally{sel.disabled=false;btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-download"></i> Download '+name+'.pdf'}}}
+$('makePdf').onclick=async()=>{if(!images.length)return alert('Please select at least one image!');const btn=$('makePdf');btn.disabled=true;$('jpgResult').innerHTML='';try{setProgress('jpg',8,'Preparing images...');await renderJpgPdfResult(300);finishProgress('jpg')}catch(e){console.error(e);alert('PDF creation error: '+e.message);$('jpgProgress').style.display='none'}finally{btn.disabled=false}};
+    // ===== Universal PDF Password Unlock System =====
+    // Every PDF upload on the website goes through this loader. If the PDF is
+    // locked, a professional in-page password box appears instead of allowing
+    // downstream PDF/JPG code to fail with "No password given".
+    const rkPdfCache = new WeakMap();
+    let rkPdfPasswordResolver = null;
+    let rkPdfPasswordRejecter = null;
+    let rkPdfPasswordCurrentFile = '';
+
+    function rkPdfLanguageText(key) {
+        const lang = document.documentElement.lang === 'bn' ? 'bn' : 'en';
+        const texts = {
+            en: {
+                title: 'PDF Password Required',
+                message: 'This PDF is password protected. Enter the password to unlock and use the file.',
+                placeholder: 'Enter PDF password',
+                incorrect: 'Incorrect password. Please try again.',
+                empty: 'Please enter the PDF password.',
+                cancel: 'Cancel',
+                unlock: '<i class="rk-pro-icon fa-solid fa-lock-open" aria-hidden="true"></i> Unlock PDF',
+                unlocked: 'PDF unlocked successfully.'
+            },
+            bn: {
+                title: 'PDF Password Required',
+                message: 'This PDF is password protected. Enter the password to unlock and use the file.',
+                placeholder: 'Enter PDF password',
+                incorrect: 'Incorrect password. Please try again.',
+                empty: 'Please enter the PDF password.',
+                cancel: 'Cancel',
+                unlock: '<i class="rk-pro-icon fa-solid fa-lock-open" aria-hidden="true"></i> Unlock PDF',
+                unlocked: 'PDF unlocked successfully.'
+            }
+        };
+        return texts[lang][key];
+    }
+
+    function rkPdfPasswordDialog(fileName, incorrect = false) {
+        return new Promise((resolve, reject) => {
+            const modal = document.getElementById('rkPdfPasswordModal');
+            const input = document.getElementById('rkPdfPassInput');
+            const error = document.getElementById('rkPdfPassError');
+            const title = document.getElementById('rkPdfPassTitle');
+            const message = document.getElementById('rkPdfPassMessage');
+            const name = document.getElementById('rkPdfPassFileName');
+            const cancel = document.getElementById('rkPdfPassCancel');
+            const unlock = document.getElementById('rkPdfPassUnlock');
+            if (!modal || !input || !error || !cancel || !unlock) {
+                reject(new Error('PDF password dialog is unavailable.'));
+                return;
+            }
+            rkPdfPasswordResolver = resolve;
+            rkPdfPasswordRejecter = reject;
+            rkPdfPasswordCurrentFile = fileName || 'Protected PDF';
+            title.textContent = rkPdfLanguageText('title');
+            message.textContent = rkPdfLanguageText('message');
+            name.textContent = rkPdfPasswordCurrentFile;
+            input.placeholder = rkPdfLanguageText('placeholder');
+            cancel.textContent = rkPdfLanguageText('cancel');
+            unlock.innerHTML = rkPdfLanguageText('unlock');
+            error.textContent = incorrect ? rkPdfLanguageText('incorrect') : '';
+            error.classList.toggle('show', !!incorrect);
+            modal.classList.remove('rk-password-incorrect');
+            if (incorrect) {
+                // Reflow lets the coded SVG reaction animation replay on every wrong password attempt.
+                void modal.offsetWidth;
+                modal.classList.add('rk-password-incorrect');
+            }
+            input.value = '';
+            modal.classList.add('show');
+            modal.setAttribute('aria-hidden', 'false');
+            setTimeout(() => input.focus(), 50);
+        });
+    }
+
+    function finishRkPdfPasswordDialog(value, cancelled = false) {
+        const modal = document.getElementById('rkPdfPasswordModal');
+        if (modal) {
+            modal.classList.remove('show');
+            modal.classList.remove('rk-password-incorrect');
+            modal.setAttribute('aria-hidden', 'true');
+        }
+        const resolver = rkPdfPasswordResolver;
+        const rejecter = rkPdfPasswordRejecter;
+        rkPdfPasswordResolver = null;
+        rkPdfPasswordRejecter = null;
+        if (cancelled) {
+            if (rejecter) rejecter(new Error('PDF unlock cancelled.'));
+        } else if (resolver) {
+            resolver(value);
+        }
+    }
+
+    function toggleRkPdfPassword() {
+        const input = document.getElementById('rkPdfPassInput');
+        if (!input) return;
+        input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    function setupRkPdfPasswordDialog() {
+        const input = document.getElementById('rkPdfPassInput');
+        const cancel = document.getElementById('rkPdfPassCancel');
+        const unlock = document.getElementById('rkPdfPassUnlock');
+        if (!input || !cancel || !unlock) return;
+        const submit = () => {
+            const value = input.value;
+            if (!value) {
+                const error = document.getElementById('rkPdfPassError');
+                if (error) { error.textContent = rkPdfLanguageText('empty'); error.classList.add('show'); }
+                input.focus();
+                return;
+            }
+            finishRkPdfPasswordDialog(value, false);
+        };
+        unlock.onclick = submit;
+        cancel.onclick = () => finishRkPdfPasswordDialog('', true);
+
+        // As soon as the user starts typing again, reset the red angry face
+        // back to the original single yellow smiling face with its happy animation.
+        input.oninput = () => {
+            const modal = document.getElementById('rkPdfPasswordModal');
+            const error = document.getElementById('rkPdfPassError');
+            if (modal) {
+                const wasAngry = modal.classList.contains('rk-password-incorrect');
+                modal.classList.remove('rk-password-incorrect');
+
+                // Only the first keystroke after an error triggers the cheerful return.
+                if (wasAngry) {
+                    modal.classList.remove('rk-password-reset');
+                    void modal.offsetWidth;
+                    modal.classList.add('rk-password-reset');
+                    setTimeout(() => modal.classList.remove('rk-password-reset'), 700);
+                }
+            }
+            if (error) {
+                error.classList.remove('show');
+                error.textContent = '';
+            }
+        };
+
+        input.onkeydown = (e) => { if (e.key === 'Enter') submit(); if (e.key === 'Escape') cancel.click(); };
+    }
+
+    async function openPdfWithPassword(data, fileName = 'Protected PDF') {
+        // IMPORTANT: Use PDF.js's explicit `password` option and retry the load.
+        // This is more reliable than an async passwordCallback on mobile browsers.
+        // It prevents the original "No password given" error and lets the user
+        // enter the password directly in the professional in-page dialog.
+        let password = null;
+        let isRetry = false;
+
+        while (true) {
+            try {
+                const task = pdfjsLib.getDocument({ data, password });
+                return await task.promise;
+            } catch (err) {
+                const isPasswordError = err && (
+                    err.name === 'PasswordException' ||
+                    err.code === pdfjsLib.PasswordResponses.NEED_PASSWORD ||
+                    err.code === pdfjsLib.PasswordResponses.INCORRECT_PASSWORD
+                );
+
+                if (!isPasswordError) throw err;
+
+                try {
+                    password = await rkPdfPasswordDialog(fileName, isRetry);
+                    isRetry = true;
+                } catch (dialogErr) {
+                    throw new Error('PDF unlock cancelled.');
+                }
+            }
+        }
+    }
+
+    async function getPdfForFile(file) {
+        if (rkPdfCache.has(file)) return rkPdfCache.get(file);
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await openPdfWithPassword(arrayBuffer, file.name);
+        rkPdfCache.set(file, pdf);
+        return pdf;
+    }
+
+$('pdfInput').onchange=e=>{const fs=[...e.target.files];if(!fs.length)return;$('pdfBox').classList.add('uploaded');$('pdfText').textContent=`Total ${fs.length} PDF(s) Selected`};
+async function canvasToTargetJpeg(canvas,targetKB){const target=targetKB*1024;let work=canvas,scale=1;for(let resizePass=0;resizePass<5;resizePass++){let lo=.15,hi=.95,best=null;for(let i=0;i<9;i++){const q=(lo+hi)/2;const u=work.toDataURL('image/jpeg',q);const size=Math.floor((u.split(',')[1].length*3)/4);if(size<=target){best=u;lo=q}else hi=q}if(best)return best;if(resizePass<4){scale*=.8;const c=document.createElement('canvas');c.width=Math.max(1,Math.floor(canvas.width*scale));c.height=Math.max(1,Math.floor(canvas.height*scale));const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(canvas,0,0,c.width,c.height);work=c}}return work.toDataURL('image/jpeg',.15)}
+$('makeJpg').onclick=async()=>{const files=[...$('pdfInput').files];if(!files.length)return alert('Please select a PDF file!');const btn=$('makeJpg');btn.disabled=true;$('pdfResult').innerHTML='';try{const docs=[];let total=0;for(const f of files){const doc=await getPdfForFile(f);docs.push(doc);total+=doc.numPages}let done=0,canvases=[],height=0,width=0;for(const doc of docs)for(let n=1;n<=doc.numPages;n++){const page=await doc.getPage(n),vp=page.getViewport({scale:2.5}),c=document.createElement('canvas'),ctx=c.getContext('2d');c.width=vp.width;c.height=vp.height;await page.render({canvasContext:ctx,viewport:vp}).promise;canvases.push(c);height+=c.height;width=Math.max(width,c.width);done++;const p=Math.min(88,8+Math.round(done/total*80));setProgress('pdf',p,`PDF page ${done} / ${total} is processing...`);await new Promise(requestAnimationFrame)}setProgress('pdf',94,'Merging all pages into JPG...');const out=document.createElement('canvas');out.width=width;out.height=height;const ctx=out.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,width,height);let y=0;canvases.forEach(c=>{ctx.drawImage(c,0,y);y+=c.height});const target=300;let url=await canvasToTargetJpeg(out,target);finishProgress('pdf');$('pdfResult').innerHTML=`<div class="result"><p><i class="fa-solid fa-circle-check"></i> All PDF pages merged into 1 Single JPG!</p>${sizePicker('pdfSize',target)}<a class="download" id="pdfDownload" href="${url}" download="RK_Output.jpg"><button class="btn"><i class="fa-solid fa-download"></i> Download Full JPG</button></a></div>`;$('pdfSize').value=String(target);$('pdfSize').onchange=async e=>{const sel=e.target,sz=Number(sel.value),b=$('pdfDownload').querySelector('button');sel.disabled=true;b.disabled=true;b.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Optimizing...';try{const nu=await canvasToTargetJpeg(out,sz);$('pdfDownload').href=nu;url=nu}catch(err){alert('Size optimization error: '+err.message)}finally{sel.disabled=false;b.disabled=false;b.innerHTML='<i class="fa-solid fa-download"></i> Download Full JPG'}}}catch(e){console.error(e);alert('Error generating JPG: '+e.message);$('pdfProgress').style.display='none'}finally{btn.disabled=false}};
+</script>
+</body>
+</html>
